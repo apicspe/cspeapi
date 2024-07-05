@@ -1,0 +1,327 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "CS Match Prediction API",
+    "version": "1.0.0",
+    "description": "To obtain a prediction, you need to create two lists of player IDs participating in the match, ensuring the players exist in the database beforehand.\n\nBased on these two lists of team player IDs, the system will predict the probabilities of victory for the first and second teams, respectively, for BO3 (Best of 3) matches. The sum of the predicted probabilities for both teams will equal one.\n"
+  },
+  "servers": [
+    {
+      "url": "https://api.cspe.io/v1",
+      "description": "Production server"
+    }
+  ],
+  "paths": {
+    "/player/{nickname}": {
+      "get": {
+        "summary": "Get player ID by nickname",
+        "description": "Returns the player ID if the player exists in the database, otherwise returns None.",
+        "parameters": [
+          {
+            "name": "nickname",
+            "in": "path",
+            "required": true,
+            "description": "Nickname of the player",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "description": "API key for authorization",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "player_id": {
+                      "type": "integer",
+                      "nullable": true,
+                      "example": 7998
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/player/existence/{nickname}": {
+      "get": {
+        "summary": "Check if player exists",
+        "description": "Returns True if the player exists in the database, otherwise False.",
+        "parameters": [
+          {
+            "name": "nickname",
+            "in": "path",
+            "required": true,
+            "description": "Nickname of the player",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "description": "API key for authorization",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exists": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/match/prediction": {
+      "post": {
+        "summary": "Get match prediction",
+        "description": "Returns the predicted probabilities of winning for two teams.",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "description": "API key for authorization",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "team1": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "description": "List of player IDs for team 1",
+                    "example": [
+                      7998,
+                      8918,
+                      7594,
+                      16947,
+                      11840
+                    ]
+                  },
+                  "team2": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "description": "List of player IDs for team 2",
+                    "example": [
+                      7412,
+                      7592,
+                      9032,
+                      4954,
+                      7398
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "prediction": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "description": "Predicted probabilities of winning for team 1 and team 2",
+                      "example": [
+                        0.315,
+                        0.685
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    },
+    "schemas": {
+      "Player": {
+        "type": "object",
+        "properties": {
+          "nickname": {
+            "type": "string",
+            "description": "Nickname of the player"
+          },
+          "player_id": {
+            "type": "integer",
+            "nullable": true,
+            "description": "ID of the player",
+            "example": 7998
+          }
+        }
+      },
+      "ExistenceCheck": {
+        "type": "object",
+        "properties": {
+          "exists": {
+            "type": "boolean",
+            "description": "Whether the player exists in the database",
+            "example": true
+          }
+        }
+      },
+      "MatchPredictionRequest": {
+        "type": "object",
+        "properties": {
+          "team1": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of player IDs for team 1",
+            "example": [
+              7998,
+              8918,
+              7594,
+              16947,
+              11840
+            ]
+          },
+          "team2": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of player IDs for team 2",
+            "example": [
+              7412,
+              7592,
+              9032,
+              4954,
+              7398
+            ]
+          }
+        }
+      },
+      "MatchPredictionResponse": {
+        "type": "object",
+        "properties": {
+          "prediction": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            },
+            "description": "Predicted probabilities of winning for team 1 and team 2",
+            "example": [
+              0.315,
+              0.685
+            ]
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ]
+}
